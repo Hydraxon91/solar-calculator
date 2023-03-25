@@ -11,12 +11,16 @@ let fileArray = file.split("\n");
 fileArray.shift(1, -1);
 csvReader(fileArray);
 //console.log(hours[0]);
-//dcOutput();
+//dailyDcOutput();
 //dcLowOutput();
-let monthlyAvg = totalDCOutputMonthly()
+//let monthlyAvg = totalDCOutputMonthly()
 //totalDCOutputYearly();
-let yearlyAvg = avgDCOutput();
-dcDifference(yearlyAvg, monthlyAvg);
+// let yearlyAvg = avgDCOutput();
+// dcDifference(yearlyAvg, monthlyAvg);
+//dcStructure();
+// monthyAscendingOrder();
+// monthyDescendingOrder();
+
 
 
 //Formating the CSV file and pusing it into hours
@@ -71,41 +75,75 @@ function csvReader(array){
     });
 };
 
-//1. Determine the highest DC array output
-function dcOutput(){
-    let highest = hours[0];
-    hours.forEach(day => {
-        //console.log(day["DC Array Output"]["value"]);
-        if ((highest["DC Array Output"]["value"]) < day["DC Array Output"]["value"]) {
-            highest = day;
+//1. Determine the highest DC array output FIXED
+function dailyDcOutput(){
+    let highest = 0;
+    let highestDay = {'Month': 1, 'Day':1};
+    //Giving highest the first day
+    for (let i = 0; i < 24; i++) {
+        highest+=hours[i]["DC Array Output"]["value"];
+    }
+    //Creating a current day with the first hours value, and a curr output with 0w
+    let currDay = hours[0];
+    let currDayOutput = 0;
+    hours.forEach(hour => {
+        //Going trough all days by checking if the current hours day and month value are the same
+        if(hour["Day"] === currDay["Day"] && hour["Month"] === currDay["Month"]){
+            currDayOutput += hour["DC Array Output"]["value"];
+            //console.log(currDayOutput)
+        }
+        //If the day is different we check if the output is higher, if it is we replace the values in highestday and highest
+        //then set the output back to 0 and THEN replace currentDay with the next day
+        else{  
+            if(currDayOutput>highest){
+                highest = currDayOutput;
+                highestDay["Month"] = currDay["Month"];
+                highestDay["Day"] = currDay["Day"]; 
+            }
+            currDayOutput = 0;
+            currDay = hour;
         }
     });
     //console.log(highest)
     //return highest;
-    console.log(`The highest DC output was during the ${highest["Month"]} months ${highest["Day"]}th/st/rd day`);
-    console.log(`${highest["DC Array Output"]["value"]} kW`);
+    console.log(`The highest DC output was during the ${highestDay["Month"]} months ${highestDay["Day"]}th/st/rd day`);
+    console.log(`${highest} kW`);
 }
 
-//2. Determine lowest DC array output
+//2. Determine lowest DC array output FIXED
 
-function dcLowOutput(){
-    let lowest = hours[0];
-    hours.forEach(day => {
-        if (lowest["DC Array Output"]["value"]===0) {
-            lowest=day;
+function dcLowOutput(){ //I'm lazy, but use your brain to replace the word high with low
+    let highest = 0;
+    let highestDay = {'Month': 1, 'Day':1};
+    //Giving highest the first day
+    for (let i = 0; i < 24; i++) {
+        highest+=hours[i]["DC Array Output"]["value"];
+    }
+    //Creating a current day with the first hours value, and a curr output with 0w
+    let currDay = hours[0];
+    let currDayOutput = 0;
+    hours.forEach(hour => {
+        //Going trough all days by checking if the current hours day and month value are the same
+        if(hour["Day"] === currDay["Day"] && hour["Month"] === currDay["Month"]){
+            currDayOutput += hour["DC Array Output"]["value"];
+            //console.log(currDayOutput)
         }
-        else{
-        if ((lowest["DC Array Output"]["value"]) > day["DC Array Output"]["value"]&&day["DC Array Output"]["value"]!==0) {
-            lowest = day;
+        //If the day is different we check if the output is higher, if it is we replace the values in highestday and highest
+        //then set the output back to 0 and THEN replace currentDay with the next day
+        else{  
+            if(currDayOutput<highest){
+                highest = currDayOutput;
+                highestDay["Month"] = currDay["Month"];
+                highestDay["Day"] = currDay["Day"]; 
+            }
+            currDayOutput = 0;
+            currDay = hour;
         }
-        }
-       // console.log(day["DC Array Output"]["value"]);
-       
     });
-    //console.log(lowest)
-    console.log(`The highest DC output was during the ${lowest["Month"]} months ${lowest["Day"]}th/st/rd day`);
-    console.log(`${lowest["DC Array Output"]["value"]} kW`);
-    return lowest;
+    //console.log(highest)
+    //return highest;
+    console.log(`The lowest DC output was during the ${highestDay["Month"]} months ${highestDay["Day"]}th/st/rd day`);
+    console.log(`${highest} kW`);
 }
 
 //4. Determine the total DC output for the year
@@ -114,7 +152,7 @@ function totalDCOutputYearly(){
     hours.forEach(day => {
         total+=day["DC Array Output"]["value"];
     });
-    console.log(`Total DC output for the year ${total}kW`);
+    //console.log(`Total DC output for the year ${total}kW`);
     return total;
 }
 
@@ -128,7 +166,7 @@ function totalDCOutputMonthly(){
         }
         else monthlyArray[day["Month"]-1]+=day["DC Array Output"]["value"];
     });
-    console.log(monthlyArray);
+    //console.log(monthlyArray);
     return monthlyArray;
 }
 
@@ -138,7 +176,7 @@ function avgDCOutput(){
     hours.forEach(day => {
         total+=day["DC Array Output"]["value"];
     });
-    console.log(`Avg DC output for the year ${total/12}kW`);
+    //console.log(`Avg DC output for the year ${total/12}kW`);
     return total/12;
 }
 
@@ -147,5 +185,111 @@ function dcDifference(avgYearly, monthlyArray){
     monthlyArray.forEach(month => {
         console.log(`the difference from the average: ${avgYearly.toFixed(2)}kW is ${(avgYearly-month).toFixed(2)}kW`)
     });
-
 }
+
+//7. Create a complex data structure for DC Array output for each month
+function dcStructure(){
+    //σ = sum of numbers
+    const dcArrayOutputByMonths = {
+        // 'avg' : 0,
+        // '1' : {
+        //     'month': 'January',
+        //     'σ':0
+        // }
+    };
+    dcArrayOutputByMonths["avg"] = avgDCOutput();
+    hours.forEach(hour => {
+        if(hour["Month"] in dcArrayOutputByMonths){
+            dcArrayOutputByMonths[hour["Month"]]['σ']+=hour["DC Array Output"]["value"];
+        }
+        else{
+            dcArrayOutputByMonths[hour["Month"]]={
+                "month" : numToMonth(hour["Month"]),
+                'σ' : hour["DC Array Output"]["value"]
+            }
+        }
+    });
+    //console.log(dcArrayOutputByMonths);
+    return dcArrayOutputByMonths;
+}
+function numToMonth(value){
+    let returnValue = '';
+    switch (value) {
+        case 1:
+            returnValue = "January";
+            break;
+        case 2:
+            returnValue = "February";
+            break;
+        case 3:
+            returnValue = "March";
+            break;
+        case 4:
+            returnValue = "April";
+            break;
+        case 5:
+            returnValue = "May";
+            break;
+        case 6:
+            returnValue = "June";
+            break;
+        case 7:
+            returnValue = "July";
+            break;
+        case 8:
+            returnValue = "August";
+            break;
+        case 9:
+            returnValue = "September";
+            break;
+        case 10:
+            returnValue = "October";
+            break;
+        case 11:
+            returnValue = "November";
+            break;
+        case 12:
+            returnValue = "December";
+            break;
+        default:
+            break;
+    }
+    return returnValue;
+}
+
+
+
+//8. Put the previous values into an array and sort them in ascending order
+function monthyAscendingOrder(){
+    let monthlyArray = [];
+    let monthlyObject = dcStructure();
+    //console.log(monthlyObject);
+    for (const key in monthlyObject) {
+        console.log(key)
+        if(key!=="avg"){
+            monthlyArray.push(monthlyObject[key]);
+        }
+    }
+    monthlyArray.sort((a,b) => a['σ']-b['σ']);
+    console.log(monthlyArray)
+}
+
+//9. Put the previous values into an array and sort them in descending order
+function monthyDescendingOrder(){
+    let monthlyArray = [];
+    let monthlyObject = dcStructure();
+    //console.log(monthlyObject);
+    for (const key in monthlyObject) {
+        console.log(key)
+        if(key!=="avg"){
+            monthlyArray.push(monthlyObject[key]);
+        }
+    }
+    monthlyArray.sort((a,b) => b['σ']-a['σ']);
+    console.log(monthlyArray)
+}
+
+//10. Determine the total DC output for each day, it's almost the same as the 3rd task so I'm skipping it for now
+
+//11. Put the previous values into an array and sort them in ascending order, almost the same as 8 so skipping for now
+//12. Put the previous values into an array and sort them in descending order, almost the same as 8 so skipping for now
